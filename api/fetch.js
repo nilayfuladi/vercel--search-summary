@@ -12,49 +12,54 @@ export default async function handler(req) {
     'Content-Type': 'application/json'
   };
 
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers, status: 204 });
-  }
-
-  if (req.method !== 'POST') {
+  // Handle the root route with a friendly message
+  if (req.method === 'GET') {
     return new Response(
-      JSON.stringify({ error: 'Method not allowed' }), 
-      { status: 405, headers }
-    );
-  }
-
-  try {
-    const data = await req.json();
-    const { url } = data;
-
-    if (!url) {
-      return new Response(
-        JSON.stringify({ error: 'URL is required' }), 
-        { status: 400, headers }
-      );
-    }
-
-    // For testing, return a simple response
-    return new Response(
-      JSON.stringify({
-        content: "This is a test summary of the content.",
-        media: {
-          images: [],
-          videos: []
-        },
-        outline: []
+      JSON.stringify({ 
+        message: 'Blog Summary API is running! Use POST /api/fetch to analyze content.',
+        status: 'active' 
       }), 
       { headers }
     );
-
-  } catch (error) {
-    return new Response(
-      JSON.stringify({ 
-        error: 'Failed to process request',
-        details: error.message 
-      }), 
-      { status: 500, headers }
-    );
   }
+
+  if (req.method === 'POST') {
+    try {
+      const data = await req.json();
+      const { url } = data;
+
+      if (!url) {
+        return new Response(
+          JSON.stringify({ error: 'URL is required' }), 
+          { status: 400, headers }
+        );
+      }
+
+      // Return a test response
+      return new Response(
+        JSON.stringify({
+          content: "Test summary of the content.",
+          media: {
+            images: [],
+            videos: []
+          }
+        }), 
+        { headers }
+      );
+
+    } catch (error) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to process request',
+          details: error.message 
+        }), 
+        { status: 500, headers }
+      );
+    }
+  }
+
+  return new Response(
+    JSON.stringify({ error: 'Method not allowed' }), 
+    { status: 405, headers }
+  );
 }
