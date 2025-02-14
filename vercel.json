@@ -1,12 +1,30 @@
 {
-    "version": 2,
-    "functions": {
-      "api/*.js": {
-        "memory": 1024,
-        "maxDuration": 10
-      }
-    },
-    "env": {
-      "OPENAI_API_KEY": "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"
+  "version": 2,
+  "regions": ["bom1"],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1",
+      "methods": ["GET", "POST", "OPTIONS"]
     }
+  ],
+  "functions": {
+    "api/*.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+      ]
+    }
+  ],
+  "env": {
+    "OPENAI_API_KEY": "@openai_api_key"
   }
+}
