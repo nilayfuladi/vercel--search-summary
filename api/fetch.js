@@ -1,52 +1,60 @@
-import axios from 'axios';
-import cheerio from 'cheerio';
-import { extractMedia } from './extract';
-import { generateOutline } from './outline';
+// api/fetch.js
+export const config = {
+  runtime: 'edge'
+};
 
-export default async function handler(req, res) {
+export default async function handler(req) {
+  // Add CORS headers
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Content-Type': 'application/json'
+  };
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers, status: 204 });
+  }
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }), 
+      { status: 405, headers }
+    );
   }
 
   try {
-    const { url } = req.body;
+    const data = await req.json();
+    const { url } = data;
 
     if (!url) {
-      return res.status(400).json({ error: 'URL is required' });
+      return new Response(
+        JSON.stringify({ error: 'URL is required' }), 
+        { status: 400, headers }
+      );
     }
 
-    // Fetch webpage content
-    const response = await axios.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    });
-
-    const html = response.data;
-    const $ = cheerio.load(html);
-
-    // Extract main content
-    const content = $('article, main, .content, .post, .entry-content')
-      .first()
-      .text()
-      .trim();
-
-    // Extract media and outline
-    const media = await extractMedia($, url);
-    const outline = await generateOutline($);
-
-    // Return processed data
-    return res.status(200).json({
-      content,
-      media,
-      outline
-    });
+    // For testing, return a simple response
+    return new Response(
+      JSON.stringify({
+        content: "This is a test summary of the content.",
+        media: {
+          images: [],
+          videos: []
+        },
+        outline: []
+      }), 
+      { headers }
+    );
 
   } catch (error) {
-    console.error('Error processing request:', error);
-    return res.status(500).json({ 
-      error: 'Failed to process webpage',
-      details: error.message 
-    });
+    return new Response(
+      JSON.stringify({ 
+        error: 'Failed to process request',
+        details: error.message 
+      }), 
+      { status: 500, headers }
+    );
   }
 }
